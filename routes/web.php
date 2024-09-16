@@ -34,6 +34,10 @@ Route::get("/login", [CustomAuthController::class, 'login']);
 Route::post("/login", [CustomAuthController::class, 'login']);
 Route::get("/logout", [CustomAuthController::class, 'logout']);
 
+
+Route::get("email/verify/{token}", [CustomAuthController::class, "verifyEmail"])->name('verifyEmail');
+
+
 Route::get("/forgot-password", [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
 Route::post("/forgot-password", [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 Route::get("/reset-password/{token}", [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');

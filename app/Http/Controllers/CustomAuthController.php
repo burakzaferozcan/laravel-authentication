@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\VerifyEmail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 
 class CustomAuthController extends Controller
@@ -22,9 +25,14 @@ class CustomAuthController extends Controller
             'email' => 'required|email|unique:users',
             'password' => 'required|confirmed'
         ]);
-        $user = User::create($request->only(['name', 'email', 'password']));
+        $user = User::create(['name' => $request->name,
+            'email' => $request->email,
+            'password' => $request->password,
+            'email_token' => Str::random(60)]);
+
         $demoRole = Role::findByName("Member");
         $user->assignRole($demoRole->id);
+        Mail::to($user->email)->send(new VerifyEmail($user));
         Auth::login($user);
         return redirect()->to("/profile");
     }
@@ -45,6 +53,20 @@ class CustomAuthController extends Controller
         return view("auth.login");
 
     }
+    public function verifyEmail($token)
+    {
+        $user=User::where("email_token",$token)->firstOrFail();
+        if ($user){
+            $user->email_token = NULL;
+            $user->email_verified_at = now();
+            $user->save();
+
+            return redirect()->to("login")->with("success","Başarıyla Doğruladınız");
+        }
+
+        return redirect()->to("login")->with("error","Token Hatalı");
+
+    }
 
     public function index(Request $request)
     {
@@ -52,6 +74,9 @@ class CustomAuthController extends Controller
             $user = Auth::user();
             if (!$user->can("read-users")) {
                 abort(403, "Bu işlemi gerçekleştirmek için yetkiniz yok.");
+            }
+            if($user->email_verified_at==null){
+                return "Hesap henüz doğrulanmadı.";
             }
             return Auth::user();
         }
