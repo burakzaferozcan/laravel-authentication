@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use \App\Http\Controllers\CustomAuthController;
 use \App\Http\Controllers\AuthorisationController;
+use \App\Http\Controllers\ForgotPasswordController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -31,5 +33,12 @@ Route::get("/profile", [CustomAuthController::class, 'index']);
 Route::get("/login", [CustomAuthController::class, 'login']);
 Route::post("/login", [CustomAuthController::class, 'login']);
 Route::get("/logout", [CustomAuthController::class, 'logout']);
+
+Route::get("/forgot-password", [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post("/forgot-password", [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get("/reset-password/{token}", [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post("/reset-password", [ForgotPasswordController::class, 'reset'])->name('password.update');
+
+
 
 
